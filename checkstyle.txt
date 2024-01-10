@@ -1,0 +1,5 @@
+Starting audit...
+[ERROR] /home/victor/Desktop/Tema3POO/etapa3/./src/main/Main.java:136:30: Inner assignments should be avoided. [InnerAssignment]
+[ERROR] /home/victor/Desktop/Tema3POO/etapa3/./src/fileio/input/CommandInput.java:195:39: Parameter recommendationType should be final. [FinalParameters]
+Audit done.
+Checkstyle ends with 2 errors.

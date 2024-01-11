@@ -175,6 +175,32 @@ public final class Admin {
         return null;
     }
 
+    public static Artist getArtist(final String username) {
+        for (Artist artist : getArtists()) {
+            if (artist.getUsername().equals(username)) {
+                return artist;
+            }
+        }
+        return null;
+    }
+
+    public static void updateOwners() {
+        for (Podcast podcast : podcasts) {
+            for (Episode episode : podcast.getEpisodes()) {
+                episode.setOwner(podcast.getOwner());
+            }
+        }
+    }
+
+    public static Host getHost(final String username) {
+        for (Host host : getHosts()) {
+            if (host.getUsername().equals(username)) {
+                return host;
+            }
+        }
+        return null;
+    }
+
     /**
      * Removes user from admin library
      *

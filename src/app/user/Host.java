@@ -6,17 +6,22 @@ import app.audio.Files.Episode;
 import app.page.HostPage;
 import app.user.content.Announcement;
 import app.utils.Enums;
+import app.wrapped.HostWrapped;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.input.EpisodeInput;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public class Host extends User {
     private List<Podcast> podcasts;
     private List<Announcement> announcements;
     private HostPage hostPage;
+    private HostWrapped wrappedStats;
 
     public Host(final String username, final int age,
                 final String city, final Enums.UserType type) {
@@ -24,6 +29,7 @@ public class Host extends User {
         podcasts = new ArrayList<>();
         announcements = new ArrayList<>();
         hostPage = new HostPage();
+        wrappedStats = new HostWrapped();
     }
 
     /**
@@ -134,5 +140,25 @@ public class Host extends User {
         }
         Admin.removeUser(this);
         return getUsername() + " was successfully deleted.";
+    }
+
+    @Override
+    public ObjectNode wrapped() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode result = objectMapper.createObjectNode();
+
+        List<Map.Entry<String, Integer>> sortedEpisodes = wrappedStats.getEpisodes().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .toList();
+        ObjectNode topEpisodes = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedEpisodes) {
+            topEpisodes.put(entry.getKey(), entry.getValue());
+        }
+
+        result.set("topEpisodes", topEpisodes);
+        result.put("listeners", wrappedStats.getListeners());
+
+        return result;
     }
 }

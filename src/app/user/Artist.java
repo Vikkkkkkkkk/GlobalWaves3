@@ -9,6 +9,9 @@ import app.page.ArtistPage;
 import app.user.content.Event;
 import app.user.content.Merch;
 import app.utils.Enums;
+import app.wrapped.ArtistWrapped;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.input.SongInput;
 import lombok.Getter;
 
@@ -16,7 +19,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public class Artist extends User {
@@ -25,6 +30,7 @@ public class Artist extends User {
     private List<Merch> merchList;
     private ArtistPage artistPage;
     private Integer likes;
+    private ArtistWrapped wrappedStats;
     public Artist(final String username, final int age,
                   final String city, final Enums.UserType type) {
         super(username, age, city, type);
@@ -32,6 +38,7 @@ public class Artist extends User {
         events = new ArrayList<>();
         merchList = new ArrayList<>();
         artistPage = new ArtistPage();
+        wrappedStats = new ArtistWrapped();
         likes = 0;
     }
 
@@ -207,5 +214,51 @@ public class Artist extends User {
      */
     public void updateLikes(final Integer like) {
         likes += like;
+    }
+
+    @Override
+    public ObjectNode wrapped() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode result = objectMapper.createObjectNode();
+
+        List<Map.Entry<String, Integer>> sortedSongs = wrappedStats.getSongs().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        ObjectNode topSongs = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedSongs) {
+            topSongs.put(entry.getKey(), entry.getValue());
+        }
+
+        List<Map.Entry<String, Integer>> sortedAlbums = wrappedStats.getAlbums().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        ObjectNode topAlbums = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedAlbums) {
+            topAlbums.put(entry.getKey(), entry.getValue());
+        }
+
+        List<Map.Entry<String, Integer>> sortedFans = wrappedStats.getFans().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        List<String> topFans = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : sortedFans) {
+            topFans.add(entry.getKey());
+        }
+
+        result.set("topAlbums", topAlbums);
+        result.set("topSongs", topSongs);
+        result.set("topFans", objectMapper.valueToTree(topFans));
+        result.put("listeners", wrappedStats.getListeners());
+
+        return result;
     }
 }

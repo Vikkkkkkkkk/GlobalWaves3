@@ -906,4 +906,29 @@ public final class CommandRunner {
 
         return objectNode;
     }
+
+    public static ObjectNode wrapped(final CommandInput commandInput) {
+        User user = Admin.getUser(commandInput.getUsername());
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+
+        if (user.getWrappedStats().isWasUpdated()) {
+            ObjectNode result = user.wrapped();
+            objectNode.put("result", result);
+        } else {
+            String type;
+            switch (user.getType()) {
+                case USER -> type = "user";
+                case ARTIST -> type = "artist";
+                case HOST ->  type = "host";
+                default -> type = "";
+            }
+            String out = "No data to show for " + type + " " + commandInput.getUsername() + ".";
+            objectNode.put("message", out);
+        }
+        return objectNode;
+    }
 }

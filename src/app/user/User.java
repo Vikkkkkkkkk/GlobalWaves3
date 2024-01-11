@@ -16,10 +16,12 @@ import app.player.PlayerStats;
 import app.searchBar.Filters;
 import app.searchBar.SearchBar;
 import app.utils.Enums;
+import app.wrapped.UserWrapped;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * The type User.
@@ -50,6 +52,8 @@ public class User {
     private HomePage homePage;
     @Getter
     private LikedContentPage likedContentPage;
+    @Getter
+    private UserWrapped wrappedStats;
 
     /**
      * Instantiates a new User.
@@ -72,6 +76,7 @@ public class User {
         status = Enums.Status.ONLINE;
         homePage = new HomePage();
         likedContentPage = new LikedContentPage();
+        wrappedStats = new UserWrapped();
         currentPage = homePage;
     }
 
@@ -90,6 +95,7 @@ public class User {
         status = Enums.Status.ONLINE;
         homePage = new HomePage();
         likedContentPage = new LikedContentPage();
+        wrappedStats = new UserWrapped();
         currentPage = homePage;
     }
 
@@ -201,6 +207,7 @@ public class User {
 
         player.setSource(searchBar.getLastSelected(), searchBar.getLastSearchType());
         searchBar.clearSelection();
+        updateWrapped(player.getCurrentAudioFile());
 
         player.pause();
 
@@ -660,6 +667,78 @@ public class User {
         return username + " was successfully deleted.";
     }
 
+    public void updateWrapped(AudioFile audioFile) {
+        wrappedStats.addListen(audioFile, username);
+    }
+
+    public ObjectNode wrapped() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode result = objectMapper.createObjectNode();
+
+        List<Map.Entry<String, Integer>> sortedArtists = wrappedStats.getArtists().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        ObjectNode topArtists = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedArtists) {
+            topArtists.put(entry.getKey(), entry.getValue());
+        }
+
+        List<Map.Entry<String, Integer>> sortedSongs = wrappedStats.getSongs().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        ObjectNode topSongs = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedSongs) {
+            topSongs.put(entry.getKey(), entry.getValue());
+        }
+
+        List<Map.Entry<String, Integer>> sortedEpisodes = wrappedStats.getEpisodes().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        ObjectNode topEpisodes = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedEpisodes) {
+            topEpisodes.put(entry.getKey(), entry.getValue());
+        }
+
+        List<Map.Entry<String, Integer>> sortedAlbums = wrappedStats.getAlbums().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        ObjectNode topAlbums = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedAlbums) {
+            topAlbums.put(entry.getKey(), entry.getValue());
+        }
+
+        List<Map.Entry<String, Integer>> sortedGenres = wrappedStats.getGenres().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(5)
+                .toList();
+        ObjectNode topGenres = objectMapper.createObjectNode();
+        for (Map.Entry<String, Integer> entry : sortedGenres) {
+            topGenres.put(entry.getKey(), entry.getValue());
+        }
+
+        result.set("topArtists", topArtists);
+        result.set("topGenres", topGenres);
+        result.set("topSongs", topSongs);
+        result.set("topAlbums", topAlbums);
+        result.set("topEpisodes", topEpisodes);
+
+        return result;
+    }
+
     /**
      * Simulate time.
      *
@@ -667,7 +746,7 @@ public class User {
      */
     public void simulateTime(final int time) {
         if (status == Enums.Status.ONLINE) {
-            player.simulatePlayer(time);
+            player.simulatePlayer(time, this);
         }
     }
 }

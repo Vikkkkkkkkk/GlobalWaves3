@@ -81,6 +81,7 @@ public final class Main {
         Admin.setUsers(library.getUsers());
         Admin.setSongs(library.getSongs());
         Admin.setPodcasts(library.getPodcasts());
+        Admin.updateOwners();
 
         for (CommandInput command : commands) {
             Admin.updateTimestamp(command.getTimestamp());
@@ -132,6 +133,7 @@ public final class Main {
                 case "removePodcast" -> outputs.add(CommandRunner.removePodcast(command));
                 case "getTop5Albums" -> outputs.add(CommandRunner.getTop5Albums(command));
                 case "getTop5Artists" -> outputs.add(CommandRunner.getTop5Artists(command));
+                case "wrapped" -> outputs.add(CommandRunner.wrapped(command));
 //                default -> System.out.println("Invalid command " + commandName);
                 default -> i = 0;
             }

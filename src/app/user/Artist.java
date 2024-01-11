@@ -5,6 +5,7 @@ import app.audio.Collections.Album;
 import app.audio.Collections.Playlist;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
+import app.monetization.ArtistRevenue;
 import app.page.ArtistPage;
 import app.user.content.Event;
 import app.user.content.Merch;
@@ -31,6 +32,7 @@ public class Artist extends User {
     private ArtistPage artistPage;
     private Integer likes;
     private ArtistWrapped wrappedStats;
+    private ArtistRevenue revenue;
     public Artist(final String username, final int age,
                   final String city, final Enums.UserType type) {
         super(username, age, city, type);
@@ -39,6 +41,7 @@ public class Artist extends User {
         merchList = new ArrayList<>();
         artistPage = new ArtistPage();
         wrappedStats = new ArtistWrapped();
+        revenue = new ArtistRevenue(username);
         likes = 0;
     }
 
@@ -260,5 +263,9 @@ public class Artist extends User {
         result.put("listeners", wrappedStats.getListeners());
 
         return result;
+    }
+
+    public void wasPlayed() {
+        revenue.setWasPlayed(true);
     }
 }

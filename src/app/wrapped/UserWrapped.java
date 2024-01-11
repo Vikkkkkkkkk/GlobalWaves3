@@ -74,6 +74,7 @@ public class UserWrapped {
             Artist artist = Admin.getArtist(song.getArtist());
             if (artist != null) {
                 artist.getWrappedStats().addListen(song, username);
+                artist.wasPlayed();
             }
         } else if (audioFile instanceof Episode episode) {
             value = 0;

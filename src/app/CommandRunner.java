@@ -3,6 +3,7 @@ package app;
 import app.audio.Collections.AlbumOutput;
 import app.audio.Collections.PlaylistOutput;
 import app.audio.Collections.PodcastOutput;
+import app.monetization.ArtistRevenue;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
 import app.user.User;
@@ -929,6 +930,25 @@ public final class CommandRunner {
             String out = "No data to show for " + type + " " + commandInput.getUsername() + ".";
             objectNode.put("message", out);
         }
+        return objectNode;
+    }
+
+    public static ObjectNode endProgram() {
+        Admin.endProgram();
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", "endProgram");
+
+        ObjectNode result = objectMapper.createObjectNode();
+        for (ArtistRevenue artistRevenue : Admin.getArtistRevenues()) {
+            ObjectNode total = objectMapper.createObjectNode();
+            total.put("merchRevenue", artistRevenue.getMerchRevenue());
+            total.put("songRevenue", artistRevenue.getSongRevenue());
+            total.put("ranking", artistRevenue.getRanking());
+            total.put("mostProfitableSong", artistRevenue.getMostProfitableSong());
+            result.set(artistRevenue.getName(), total);
+        }
+        objectNode.set("result", result);
+
         return objectNode;
     }
 }

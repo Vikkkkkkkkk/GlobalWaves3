@@ -139,6 +139,7 @@ public final class Main {
             }
         }
 
+        outputs.add(CommandRunner.endProgram());
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         objectWriter.writeValue(new File(filePath2), outputs);
 

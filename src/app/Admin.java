@@ -9,6 +9,7 @@ import app.audio.Collections.AudioCollection;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
+import app.monetization.ArtistRevenue;
 import app.user.Artist;
 import app.user.Host;
 import app.user.User;
@@ -29,6 +30,7 @@ public final class Admin {
     private static List<User> users = new ArrayList<>();
     private static List<Song> songs = new ArrayList<>();
     private static List<Podcast> podcasts = new ArrayList<>();
+    private static List<ArtistRevenue> artistRevenues = new ArrayList<>();
     private static int timestamp = 0;
     private static final int LIMIT = 5;
 
@@ -199,6 +201,10 @@ public final class Admin {
             }
         }
         return null;
+    }
+
+    public static List<ArtistRevenue> getArtistRevenues() {
+        return new ArrayList<>(artistRevenues);
     }
 
     /**
@@ -698,6 +704,23 @@ public final class Admin {
         return topArtists;
     }
 
+    public static void endProgram() {
+        for (Artist artist : getArtists()) {
+            if (artist.getRevenue().isWasPlayed()) {
+                artistRevenues.add(artist.getRevenue());
+            }
+        }
+        if (artistRevenues.isEmpty()) {
+            return;
+        }
+        artistRevenues.sort(Comparator.comparingDouble(ArtistRevenue::getTotalRevenue)
+                .reversed()
+                .thenComparing(ArtistRevenue::getName, Comparator.naturalOrder()));
+        for (ArtistRevenue artistRevenue : artistRevenues) {
+            artistRevenue.setRanking(artistRevenues.indexOf(artistRevenue) + 1);
+        }
+    }
+
     /**
      * Reset.
      */
@@ -705,6 +728,7 @@ public final class Admin {
         users = new ArrayList<>();
         songs = new ArrayList<>();
         podcasts = new ArrayList<>();
+        artistRevenues = new ArrayList<>();
         timestamp = 0;
     }
 }

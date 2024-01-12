@@ -280,6 +280,10 @@ public class Artist extends User implements ContentCreator {
         revenue.addSong(name, price);
     }
 
+    public void updateMerchRevenue(final Integer price) {
+        revenue.addMerchRevenue(price.doubleValue());
+    }
+
     public void addSongRevenue(final Double price) {
         revenue.addSongRevenue(price);
     }
@@ -306,6 +310,24 @@ public class Artist extends User implements ContentCreator {
     public void notifySubscribers(String message, String username) {
         for (Subscriber subscriber : subscribers) {
             subscriber.update(message, username);
+        }
+    }
+
+    public Merch getMerch(final String name) {
+        for (Merch merch : merchList) {
+            if (merch.getName().equals(name)) {
+                return merch;
+            }
+        }
+        return null;
+    }
+
+    public void removeMerch(final String name) {
+        for (Merch merch : merchList) {
+            if (merch.getName().equals(name)) {
+                merchList.remove(merch);
+                break;
+            }
         }
     }
 }

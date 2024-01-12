@@ -19,6 +19,7 @@ import app.player.Player;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
 import app.searchBar.SearchBar;
+import app.user.content.Merch;
 import app.utils.Enums;
 import app.wrapped.UserWrapped;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,6 +65,7 @@ public class User implements Subscriber {
     private UserActivity userActivity;
     private List<ContentCreator> subscribedTo;
     private List<Notification> notifications;
+    private List<Merch> boughtMerch;
 
     /**
      * Instantiates a new User.
@@ -92,6 +94,7 @@ public class User implements Subscriber {
         userActivity = new UserActivity();
         subscribedTo = new ArrayList<>();
         notifications = new ArrayList<>();
+        boughtMerch = new ArrayList<>();
     }
 
     public User(final String username, final int age,
@@ -115,6 +118,7 @@ public class User implements Subscriber {
         userActivity = new UserActivity();
         subscribedTo = new ArrayList<>();
         notifications = new ArrayList<>();
+        boughtMerch = new ArrayList<>();
     }
 
     /**
@@ -861,5 +865,25 @@ public class User implements Subscriber {
 
     public void clearNotifications() {
         notifications.clear();
+    }
+
+    public String buyMerch(Artist artist, String merchName) {
+        if (artist.getMerchList().stream().noneMatch(merch -> merch.getName().equals(merchName))) {
+            return "The merch " + merchName + " doesn't exist.";
+        }
+        Merch merch = artist.getMerch(merchName);
+        boughtMerch.add(merch);
+        artist.updateMerchRevenue(merch.getPrice());
+        artist.removeMerch(merchName);
+        artist.wasPlayed();
+        return username + " has added new merch successfully.";
+    }
+
+    public List<String> seeMerch() {
+        List<String> result = new ArrayList<>();
+        for (Merch merch : boughtMerch) {
+            result.add(merch.getName());
+        }
+        return result;
     }
 }

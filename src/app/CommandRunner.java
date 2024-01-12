@@ -1049,6 +1049,52 @@ public final class CommandRunner {
         return objectNode;
     }
 
+    public static ObjectNode buyMerch(final CommandInput commandInput) {
+        String message;
+        if (!Authorizer.getInstance().existsUser(commandInput.getUsername())) {
+            message = "The username "
+                    + commandInput.getUsername() + " doesn't exist.";
+        }
+        User user = Admin.getUser(commandInput.getUsername());
+        Page page = user.getCurrentPage();
+        if (!(page instanceof ArtistPage)) {
+            message = "Cannot buy merch from this page.";
+        } else {
+            Artist artist = Admin.getArtist(((ArtistPage) page).getOwner());
+            message = user.buyMerch(artist, commandInput.getName());
+        }
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    public static ObjectNode seeMerch(final CommandInput commandInput) {
+        if (!Authorizer.getInstance().existsUser(commandInput.getUsername())) {
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("command", commandInput.getCommand());
+            objectNode.put("user", commandInput.getUsername());
+            objectNode.put("timestamp", commandInput.getTimestamp());
+            objectNode.put("message", "The username "
+                    + commandInput.getUsername() + " doesn't exist.");
+            return objectNode;
+        }
+        User user = Admin.getUser(commandInput.getUsername());
+        List<String> result = user.seeMerch();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", user.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("result", objectMapper.valueToTree(result));
+
+        return objectNode;
+    }
+
     public static ObjectNode endProgram() {
         Admin.endProgram();
         ObjectNode objectNode = objectMapper.createObjectNode();

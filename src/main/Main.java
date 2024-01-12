@@ -142,6 +142,8 @@ public final class Main {
                 case "adBreak" -> outputs.add(CommandRunner.adBreak(command));
                 case "subscribe" -> outputs.add(CommandRunner.subscribe(command));
                 case "getNotifications" -> outputs.add(CommandRunner.getNotifications(command));
+                case "buyMerch" -> outputs.add(CommandRunner.buyMerch(command));
+                case "seeMerch" -> outputs.add(CommandRunner.seeMerch(command));
 //                default -> System.out.println("Invalid command " + commandName);
                 default -> i = 0;
             }

@@ -3,6 +3,8 @@ package app.user;
 import app.Admin;
 import app.audio.Collections.Podcast;
 import app.audio.Files.Episode;
+import app.notifications.ContentCreator;
+import app.notifications.Subscriber;
 import app.page.HostPage;
 import app.user.content.Announcement;
 import app.utils.Enums;
@@ -17,19 +19,21 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-public class Host extends User {
+public class Host extends User implements ContentCreator {
     private List<Podcast> podcasts;
     private List<Announcement> announcements;
     private HostPage hostPage;
     private HostWrapped wrappedStats;
+    List<Subscriber> subscribers;
 
     public Host(final String username, final int age,
                 final String city, final Enums.UserType type) {
         super(username, age, city, type);
         podcasts = new ArrayList<>();
         announcements = new ArrayList<>();
-        hostPage = new HostPage();
+        hostPage = new HostPage(getUsername());
         wrappedStats = new HostWrapped();
+        subscribers = new ArrayList<>();
     }
 
     /**
@@ -74,6 +78,7 @@ public class Host extends User {
         }
         Announcement announcement = new Announcement(name, description);
         announcements.add(announcement);
+        notifySubscribers("New Announcement", getUsername());
         return getUsername() + " has successfully added new announcement.";
     }
 
@@ -160,5 +165,22 @@ public class Host extends User {
         result.put("listeners", wrappedStats.getListeners());
 
         return result;
+    }
+
+    @Override
+    public void addSubscriber(Subscriber subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    @Override
+    public void removeSubscriber(Subscriber subscriber) {
+        subscribers.remove(subscriber);
+    }
+
+    @Override
+    public void notifySubscribers(String message, String username) {
+        for (Subscriber subscriber : subscribers) {
+            subscriber.update(message, username);
+        }
     }
 }

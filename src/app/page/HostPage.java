@@ -12,8 +12,11 @@ import java.util.List;
 public class HostPage implements Page {
     private List<Podcast> podcasts = new ArrayList<>();
     private List<Announcement> announcements = new ArrayList<>();
+    private String owner;
 
-    public HostPage() { }
+    public HostPage(final String owner) {
+        this.owner = owner;
+    }
 
     /**
      * Refresh the podcast list with latest data

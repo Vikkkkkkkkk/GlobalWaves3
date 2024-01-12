@@ -13,8 +13,11 @@ public class ArtistPage implements Page {
     private List<Album> albums = new ArrayList<>();
     private List<Merch> merch = new ArrayList<>();
     private List<Event> events = new ArrayList<>();
+    private String owner;
 
-    public ArtistPage() { }
+    public ArtistPage(final String owner) {
+        this.owner = owner;
+    }
 
     /**
      * Refresh the album list

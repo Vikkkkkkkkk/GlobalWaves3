@@ -140,6 +140,8 @@ public final class Main {
                 case "buyPremium" -> outputs.add(CommandRunner.buyPremium(command));
                 case "cancelPremium" -> outputs.add(CommandRunner.cancelPremium(command));
                 case "adBreak" -> outputs.add(CommandRunner.adBreak(command));
+                case "subscribe" -> outputs.add(CommandRunner.subscribe(command));
+                case "getNotifications" -> outputs.add(CommandRunner.getNotifications(command));
 //                default -> System.out.println("Invalid command " + commandName);
                 default -> i = 0;
             }

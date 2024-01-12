@@ -9,6 +9,9 @@ import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
 import app.audio.LibraryEntry;
 import app.monetization.UserActivity;
+import app.notifications.Notification;
+import app.notifications.Subscriber;
+import app.notifications.ContentCreator;
 import app.page.HomePage;
 import app.page.LikedContentPage;
 import app.page.Page;
@@ -27,7 +30,7 @@ import java.util.*;
 /**
  * The type User.
  */
-public class User {
+public class User implements Subscriber {
     @Getter
     private String username;
     @Getter
@@ -59,6 +62,8 @@ public class User {
     private boolean premium;
     @Getter
     private UserActivity userActivity;
+    private List<ContentCreator> subscribedTo;
+    private List<Notification> notifications;
 
     /**
      * Instantiates a new User.
@@ -85,6 +90,8 @@ public class User {
         currentPage = homePage;
         premium = false;
         userActivity = new UserActivity();
+        subscribedTo = new ArrayList<>();
+        notifications = new ArrayList<>();
     }
 
     public User(final String username, final int age,
@@ -106,6 +113,8 @@ public class User {
         currentPage = homePage;
         premium = false;
         userActivity = new UserActivity();
+        subscribedTo = new ArrayList<>();
+        notifications = new ArrayList<>();
     }
 
     /**
@@ -812,5 +821,45 @@ public class User {
         if (status == Enums.Status.ONLINE) {
             player.simulatePlayer(time, this);
         }
+    }
+
+    @Override
+    public void update(final String message, final String username) {
+        notifications.add(new Notification(message, username));
+    }
+
+    public String subscribe(final ContentCreator contentCreator) {
+        String user;
+        if (contentCreator instanceof Artist) {
+            user = ((Artist) contentCreator).getUsername();
+        } else {
+            user = ((Host) contentCreator).getUsername();
+        }
+        if (!subscribedTo.contains(contentCreator)) {
+            subscribedTo.add(contentCreator);
+            contentCreator.addSubscriber(this);
+            return username + " subscribed to " + user + " successfully.";
+        } else {
+            subscribedTo.remove(contentCreator);
+            contentCreator.removeSubscriber(this);
+            return username + " unsubscribed from " + user + " successfully.";
+        }
+    }
+
+    public List<ObjectNode> getNotifications() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<ObjectNode> result = new ArrayList<>();
+        for (Notification notification : notifications) {
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("name", notification.getMessage());
+            objectNode.put("description", notification.printNotification());
+            result.add(objectNode);
+        }
+        clearNotifications();
+        return result;
+    }
+
+    public void clearNotifications() {
+        notifications.clear();
     }
 }

@@ -5,8 +5,12 @@ import app.audio.Collections.PlaylistOutput;
 import app.audio.Collections.PodcastOutput;
 import app.authorizer.Authorizer;
 import app.monetization.ArtistRevenue;
+import app.page.ArtistPage;
+import app.page.HostPage;
+import app.page.Page;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
+import app.user.Artist;
 import app.user.User;
 import app.utils.Enums;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -996,6 +1000,51 @@ public final class CommandRunner {
         objectNode.put("user", commandInput.getUsername());
         objectNode.put("timestamp", commandInput.getTimestamp());
         objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    public static ObjectNode subscribe(final CommandInput commandInput) {
+        if (!Authorizer.getInstance().existsUser(commandInput.getUsername())) {
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("command", commandInput.getCommand());
+            objectNode.put("user", commandInput.getUsername());
+            objectNode.put("timestamp", commandInput.getTimestamp());
+            objectNode.put("message", "The username "
+                    + commandInput.getUsername() + " doesn't exist.");
+            return objectNode;
+        }
+        User user = Admin.getUser(commandInput.getUsername());
+        Page page = user.getCurrentPage();
+        String message;
+        if (page instanceof ArtistPage) {
+            String owner = ((ArtistPage) page).getOwner();
+            message = user.subscribe(Admin.getArtist(owner));
+        }  else if (page instanceof HostPage) {
+            String owner = ((HostPage) page).getOwner();
+            message = user.subscribe(Admin.getHost(owner));
+        } else {
+            message = "To subscribe you need to be on the page of an artist or host.";
+        }
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    public static ObjectNode getNotifications(final CommandInput commandInput) {
+        User user = Admin.getUser(commandInput.getUsername());
+        List<ObjectNode> notifications = user.getNotifications();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("notifications", objectMapper.valueToTree(notifications));
 
         return objectNode;
     }

@@ -6,6 +6,8 @@ import app.audio.Collections.Playlist;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
 import app.monetization.ArtistRevenue;
+import app.notifications.Subscriber;
+import app.notifications.ContentCreator;
 import app.page.ArtistPage;
 import app.user.content.Event;
 import app.user.content.Merch;
@@ -25,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-public class Artist extends User {
+public class Artist extends User implements ContentCreator {
     private List<Album> albums;
     private List<Event> events;
     private List<Merch> merchList;
@@ -33,16 +35,18 @@ public class Artist extends User {
     private Integer likes;
     private ArtistWrapped wrappedStats;
     private ArtistRevenue revenue;
+    List<Subscriber> subscribers;
     public Artist(final String username, final int age,
                   final String city, final Enums.UserType type) {
         super(username, age, city, type);
         albums = new ArrayList<>();
         events = new ArrayList<>();
         merchList = new ArrayList<>();
-        artistPage = new ArtistPage();
+        artistPage = new ArtistPage(getUsername());
         wrappedStats = new ArtistWrapped();
         revenue = new ArtistRevenue(username);
         likes = 0;
+        subscribers = new ArrayList<>();
     }
 
     /**
@@ -76,6 +80,7 @@ public class Artist extends User {
             album.addLikes(song.getLikes());
         }
         albums.add(album);
+        notifySubscribers("New Album", getUsername());
         return getUsername() + " has added new album successfully.";
     }
 
@@ -121,6 +126,7 @@ public class Artist extends User {
         }
         Event event = new Event(name, description, date);
         events.add(event);
+        notifySubscribers("New Event", getUsername());
         return getUsername() + " has added new event successfully.";
     }
 
@@ -141,6 +147,7 @@ public class Artist extends User {
         }
         Merch merch = new Merch(name, description, price);
         merchList.add(merch);
+        notifySubscribers("New Merchandise", getUsername());
         return getUsername() + " has added new merchandise successfully.";
     }
 
@@ -283,5 +290,22 @@ public class Artist extends User {
 
     public void sortSongs() {
         revenue.sortSongs();
+    }
+
+    @Override
+    public void addSubscriber(Subscriber subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    @Override
+    public void removeSubscriber(Subscriber subscriber) {
+        subscribers.remove(subscriber);
+    }
+
+    @Override
+    public void notifySubscribers(String message, String username) {
+        for (Subscriber subscriber : subscribers) {
+            subscriber.update(message, username);
+        }
     }
 }

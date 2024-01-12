@@ -2,6 +2,7 @@ package app.player;
 
 import app.audio.Collections.AudioCollection;
 import app.audio.Files.AudioFile;
+import app.audio.Files.Song;
 import app.audio.LibraryEntry;
 import app.user.User;
 import app.utils.Enums;
@@ -178,6 +179,9 @@ public final class Player {
                     break;
                 }
                 user.updateWrapped(source.getAudioFile());
+                if (source.getAudioFile() instanceof Song) {
+                    user.updateActivity((Song) source.getAudioFile());
+                }
             }
             if (!paused) {
                 source.skip(-elapsedTime);

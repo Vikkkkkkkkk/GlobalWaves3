@@ -705,7 +705,13 @@ public final class Admin {
     }
 
     public static void endProgram() {
+        for (User user : users) {
+            user.giveRevenue();
+            user.resetActivity();
+        }
         for (Artist artist : getArtists()) {
+            artist.roundRevenue();
+            artist.sortSongs();
             if (artist.getRevenue().isWasPlayed()) {
                 artistRevenues.add(artist.getRevenue());
             }

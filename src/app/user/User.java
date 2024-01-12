@@ -8,6 +8,7 @@ import app.audio.Collections.PlaylistOutput;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
 import app.audio.LibraryEntry;
+import app.monetization.UserActivity;
 import app.page.HomePage;
 import app.page.LikedContentPage;
 import app.page.Page;
@@ -54,6 +55,10 @@ public class User {
     private LikedContentPage likedContentPage;
     @Getter
     private UserWrapped wrappedStats;
+    @Getter
+    private boolean premium;
+    @Getter
+    private UserActivity userActivity;
 
     /**
      * Instantiates a new User.
@@ -78,6 +83,8 @@ public class User {
         likedContentPage = new LikedContentPage();
         wrappedStats = new UserWrapped();
         currentPage = homePage;
+        premium = false;
+        userActivity = new UserActivity();
     }
 
     public User(final String username, final int age,
@@ -97,6 +104,8 @@ public class User {
         likedContentPage = new LikedContentPage();
         wrappedStats = new UserWrapped();
         currentPage = homePage;
+        premium = false;
+        userActivity = new UserActivity();
     }
 
     /**
@@ -208,6 +217,9 @@ public class User {
         player.setSource(searchBar.getLastSelected(), searchBar.getLastSearchType());
         searchBar.clearSelection();
         updateWrapped(player.getCurrentAudioFile());
+        if (player.getCurrentAudioFile() instanceof Song) {
+            updateActivity((Song) player.getCurrentAudioFile());
+        }
 
         player.pause();
 
@@ -671,6 +683,10 @@ public class User {
         wrappedStats.addListen(audioFile, username);
     }
 
+    public void updateActivity(Song song) {
+        userActivity.addListen(song);
+    }
+
     public ObjectNode wrapped() {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode result = objectMapper.createObjectNode();
@@ -737,6 +753,35 @@ public class User {
         result.set("topEpisodes", topEpisodes);
 
         return result;
+    }
+
+    public String buyPremium() {
+        if (premium) {
+            return username + " is already a premium user.";
+        }
+        premium = true;
+        resetActivity();
+        userActivity.setPremium(true);
+        return username + " bought the subscription successfully.";
+    }
+
+    public String cancelPremium() {
+        if (!premium) {
+            return username + " is not a premium user.";
+        }
+        giveRevenue();
+        resetActivity();
+        premium = false;
+        userActivity.setPremium(false);
+        return username + " cancelled the subscription successfully.";
+    }
+
+    public void giveRevenue() {
+        userActivity.giveRevenue();
+    }
+
+    public void resetActivity() {
+        userActivity.reset();
     }
 
     /**

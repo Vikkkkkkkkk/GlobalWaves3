@@ -268,4 +268,20 @@ public class Artist extends User {
     public void wasPlayed() {
         revenue.setWasPlayed(true);
     }
+
+    public void updateSongRevenue(String name, Double price) {
+        revenue.addSong(name, price);
+    }
+
+    public void addSongRevenue(Double price) {
+        revenue.addSongRevenue(price);
+    }
+
+    public void roundRevenue() {
+        revenue.roundRevenue();
+    }
+
+    public void sortSongs() {
+        revenue.sortSongs();
+    }
 }

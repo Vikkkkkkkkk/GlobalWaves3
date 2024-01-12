@@ -3,6 +3,7 @@ package app;
 import app.audio.Collections.AlbumOutput;
 import app.audio.Collections.PlaylistOutput;
 import app.audio.Collections.PodcastOutput;
+import app.authorizer.Authorizer;
 import app.monetization.ArtistRevenue;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
@@ -930,6 +931,50 @@ public final class CommandRunner {
             String out = "No data to show for " + type + " " + commandInput.getUsername() + ".";
             objectNode.put("message", out);
         }
+        return objectNode;
+    }
+
+    public static ObjectNode buyPremium(final CommandInput commandInput) {
+        if (!Authorizer.getInstance().existsUser(commandInput.getUsername())) {
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("command", commandInput.getCommand());
+            objectNode.put("user", commandInput.getUsername());
+            objectNode.put("timestamp", commandInput.getTimestamp());
+            objectNode.put("message", "The username "
+                    + commandInput.getUsername() + " doesn't exist.");
+            return objectNode;
+        }
+        User user = Admin.getUser(commandInput.getUsername());
+        String message = user.buyPremium();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    public static ObjectNode cancelPremium(final CommandInput commandInput) {
+        if (!Authorizer.getInstance().existsUser(commandInput.getUsername())) {
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("command", commandInput.getCommand());
+            objectNode.put("user", commandInput.getUsername());
+            objectNode.put("timestamp", commandInput.getTimestamp());
+            objectNode.put("message", "The username "
+                    + commandInput.getUsername() + " doesn't exist.");
+            return objectNode;
+        }
+        User user = Admin.getUser(commandInput.getUsername());
+        String message = user.cancelPremium();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
         return objectNode;
     }
 

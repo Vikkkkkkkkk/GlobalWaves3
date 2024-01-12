@@ -1,5 +1,6 @@
 package app.player;
 
+import app.Admin;
 import app.audio.Collections.AudioCollection;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
@@ -7,6 +8,7 @@ import app.audio.LibraryEntry;
 import app.user.User;
 import app.utils.Enums;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,9 @@ public final class Player {
     private PlayerSource source;
     @Getter
     private String type;
+    @Getter
+    @Setter
+    private boolean adBreak;
     private final int skipTime = 90;
 
     private ArrayList<PodcastBookmark> bookmarks = new ArrayList<>();
@@ -174,13 +179,20 @@ public final class Player {
         if (!paused) {
             while (elapsedTime >= source.getDuration()) {
                 elapsedTime -= source.getDuration();
-                next();
-                if (paused) {
-                    break;
-                }
-                user.updateWrapped(source.getAudioFile());
-                if (source.getAudioFile() instanceof Song) {
-                    user.updateActivity((Song) source.getAudioFile());
+                if (adBreak) {
+                    adBreak = false;
+                    source.insertAd(Admin.getAd());
+                    user.giveRevenue();
+                    user.resetActivity();
+                } else {
+                    next();
+                    if (paused) {
+                        break;
+                    }
+                    user.updateWrapped(source.getAudioFile());
+                    if (source.getAudioFile() instanceof Song) {
+                        user.updateActivity((Song) source.getAudioFile());
+                    }
                 }
             }
             if (!paused) {

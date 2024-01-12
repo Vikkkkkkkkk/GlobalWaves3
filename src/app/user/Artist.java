@@ -269,11 +269,11 @@ public class Artist extends User {
         revenue.setWasPlayed(true);
     }
 
-    public void updateSongRevenue(String name, Double price) {
+    public void updateSongRevenue(final String name, final Double price) {
         revenue.addSong(name, price);
     }
 
-    public void addSongRevenue(Double price) {
+    public void addSongRevenue(final Double price) {
         revenue.addSongRevenue(price);
     }
 

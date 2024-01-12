@@ -224,4 +224,9 @@ public class PlayerSource {
         this.audioFile = audioFile;
     }
 
+    public void insertAd(final AudioFile ad) {
+        audioFile = ad;
+        remainedDuration = ad.getDuration();
+    }
+
 }

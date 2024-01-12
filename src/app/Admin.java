@@ -706,7 +706,9 @@ public final class Admin {
 
     public static void endProgram() {
         for (User user : users) {
-            user.giveRevenue();
+            if (user.isPremium()) {
+                user.giveRevenue();
+            }
             user.resetActivity();
         }
         for (Artist artist : getArtists()) {
@@ -725,6 +727,10 @@ public final class Admin {
         for (ArtistRevenue artistRevenue : artistRevenues) {
             artistRevenue.setRanking(artistRevenues.indexOf(artistRevenue) + 1);
         }
+    }
+
+    public static AudioFile getAd() {
+        return songs.get(0);
     }
 
     /**

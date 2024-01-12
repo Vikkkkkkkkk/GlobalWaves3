@@ -978,6 +978,28 @@ public final class CommandRunner {
         return objectNode;
     }
 
+    public static ObjectNode adBreak(final CommandInput commandInput) {
+        if (!Authorizer.getInstance().existsUser(commandInput.getUsername())) {
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("command", commandInput.getCommand());
+            objectNode.put("user", commandInput.getUsername());
+            objectNode.put("timestamp", commandInput.getTimestamp());
+            objectNode.put("message", "The username "
+                    + commandInput.getUsername() + " doesn't exist.");
+            return objectNode;
+        }
+        User user = Admin.getUser(commandInput.getUsername());
+        String message = user.adBreak(commandInput.getPrice());
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
     public static ObjectNode endProgram() {
         Admin.endProgram();
         ObjectNode objectNode = objectMapper.createObjectNode();

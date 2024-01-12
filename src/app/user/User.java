@@ -213,7 +213,7 @@ public class User {
             && ((AudioCollection) searchBar.getLastSelected()).getNumberOfTracks() == 0) {
             return "You can't load an empty audio collection!";
         }
-
+        player.setAdBreak(false);
         player.setSource(searchBar.getLastSelected(), searchBar.getLastSearchType());
         searchBar.clearSelection();
         updateWrapped(player.getCurrentAudioFile());
@@ -760,6 +760,7 @@ public class User {
             return username + " is already a premium user.";
         }
         premium = true;
+        backupActivity();
         resetActivity();
         userActivity.setPremium(true);
         return username + " bought the subscription successfully.";
@@ -771,6 +772,7 @@ public class User {
         }
         giveRevenue();
         resetActivity();
+        restoreActivity();
         premium = false;
         userActivity.setPremium(false);
         return username + " cancelled the subscription successfully.";
@@ -782,6 +784,23 @@ public class User {
 
     public void resetActivity() {
         userActivity.reset();
+    }
+
+    public void backupActivity() {
+        userActivity.backupActivity();
+    }
+
+    public void restoreActivity() {
+        userActivity.restoreActivity();
+    }
+
+    public String adBreak(final Integer price) {
+        if (player.getCurrentAudioFile() == null) {
+            return username + " is not playing any music.";
+        }
+        player.setAdBreak(true);
+        userActivity.setAdPrice(price.doubleValue());
+        return "Ad inserted successfully.";
     }
 
     /**

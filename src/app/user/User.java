@@ -6,15 +6,14 @@ import app.audio.Collections.AudioCollection;
 import app.audio.Collections.Playlist;
 import app.audio.Collections.PlaylistOutput;
 import app.audio.Files.AudioFile;
+import app.audio.Files.Episode;
 import app.audio.Files.Song;
 import app.audio.LibraryEntry;
 import app.monetization.UserActivity;
 import app.notifications.Notification;
 import app.notifications.Subscriber;
 import app.notifications.ContentCreator;
-import app.page.HomePage;
-import app.page.LikedContentPage;
-import app.page.Page;
+import app.page.*;
 import app.player.Player;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
@@ -66,6 +65,7 @@ public class User implements Subscriber {
     private List<ContentCreator> subscribedTo;
     private List<Notification> notifications;
     private List<Merch> boughtMerch;
+    private PageHistory pageHistory;
 
     /**
      * Instantiates a new User.
@@ -95,6 +95,7 @@ public class User implements Subscriber {
         subscribedTo = new ArrayList<>();
         notifications = new ArrayList<>();
         boughtMerch = new ArrayList<>();
+        pageHistory = new PageHistory();
     }
 
     public User(final String username, final int age,
@@ -119,6 +120,7 @@ public class User implements Subscriber {
         subscribedTo = new ArrayList<>();
         notifications = new ArrayList<>();
         boughtMerch = new ArrayList<>();
+        pageHistory = new PageHistory();
     }
 
     /**
@@ -197,8 +199,10 @@ public class User implements Subscriber {
             }
             if (searchBar.getLastSearchType().equals("artist")) {
                 currentPage = ((Artist) selected).getArtistPage();
+                pageHistory.addSnapshot(new PageSnapshot(currentPage));
             } else {
                 currentPage = ((Host) selected).getHostPage();
+                pageHistory.addSnapshot(new PageSnapshot(currentPage));
             }
 
             return "Successfully selected %s's page.".formatted(selected.username);
@@ -652,11 +656,32 @@ public class User implements Subscriber {
     public String changePage(final String nextPage) {
         if (nextPage.equals("Home")) {
             currentPage = homePage;
+            pageHistory.addSnapshot(new PageSnapshot(currentPage));
             return username + " accessed " + nextPage + " successfully.";
         }
         if (nextPage.equals("LikedContent")) {
             currentPage = likedContentPage;
+            pageHistory.addSnapshot(new PageSnapshot(currentPage));
             return username + " accessed " + nextPage + " successfully.";
+        }
+        if (nextPage.equals("Artist")) {
+            if (getCurrentAudioFile() instanceof Song song) {
+                currentPage = Admin.getArtist(song.getArtist()).getArtistPage();
+                pageHistory.addSnapshot(new PageSnapshot(currentPage));
+                return username + " accessed " + nextPage + " successfully.";
+            } else {
+                return username + " is trying to access a non-existent page.";
+            }
+        }
+        if (nextPage.equals("Host")) {
+            if (getCurrentAudioFile() instanceof Episode episode) {
+                Host host = Admin.getHost(episode.getOwner());
+                currentPage = host.getHostPage();
+                pageHistory.addSnapshot(new PageSnapshot(currentPage));
+                return username + " accessed " + nextPage + " successfully.";
+            } else {
+                return username + " is trying to access a non-existent page.";
+            }
         }
         return username + " is trying to access a non-existent page.";
     }
@@ -885,5 +910,23 @@ public class User implements Subscriber {
             result.add(merch.getName());
         }
         return result;
+    }
+
+    public String nextPage() {
+        PageSnapshot snapshot = pageHistory.forward();
+        if (snapshot == null) {
+            return "There are no pages left to go forward.";
+        }
+        currentPage = snapshot.getPage();
+        return "The user %s has navigated successfully to the next page.".formatted(username);
+    }
+
+    public String previousPage() {
+        PageSnapshot snapshot = pageHistory.backward();
+        if (snapshot == null) {
+            return "There are no pages left to go backward.";
+        }
+        currentPage = snapshot.getPage();
+        return "The user %s has navigated successfully to the previous page.".formatted(username);
     }
 }

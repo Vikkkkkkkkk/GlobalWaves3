@@ -56,8 +56,10 @@ public class Host extends User implements ContentCreator {
         }
         List<Episode> episodesPodcast = new ArrayList<>();
         for (EpisodeInput episodeInput : episodes) {
-            episodesPodcast.add(new Episode(episodeInput.getName(),
-                    episodeInput.getDuration(), episodeInput.getDescription()));
+            Episode episode = new Episode(episodeInput.getName(),
+                    episodeInput.getDuration(), episodeInput.getDescription());
+            episode.setOwner(getUsername());
+            episodesPodcast.add(episode);
         }
         Podcast podcast = new Podcast(name, getUsername(), episodesPodcast);
         podcasts.add(podcast);

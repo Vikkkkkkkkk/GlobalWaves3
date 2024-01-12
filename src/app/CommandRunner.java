@@ -1095,6 +1095,32 @@ public final class CommandRunner {
         return objectNode;
     }
 
+    public static ObjectNode nextPage(final CommandInput commandInput) {
+        User user = Admin.getUser(commandInput.getUsername());
+        String message = user.nextPage();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", user.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    public static ObjectNode previousPage(final CommandInput commandInput) {
+        User user = Admin.getUser(commandInput.getUsername());
+        String message = user.previousPage();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", user.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
     public static ObjectNode endProgram() {
         Admin.endProgram();
         ObjectNode objectNode = objectMapper.createObjectNode();

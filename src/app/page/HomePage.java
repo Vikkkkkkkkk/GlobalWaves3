@@ -58,10 +58,20 @@ public class HomePage implements Page {
         }
     }
 
+    /**
+     * Adds a song recommendation.
+     *
+     * @param song the song
+     */
     public void addSongRecommendation(final Song song) {
         songRecommendations.add(song);
     }
 
+    /**
+     * Adds a playlist recommendation.
+     *
+     * @param playlist the playlist
+     */
     public void addPlaylistRecommendation(final Playlist playlist) {
         playlistRecommendations.add(playlist);
     }
@@ -76,8 +86,8 @@ public class HomePage implements Page {
 
         ArrayList<String> songs = new ArrayList<>();
         ArrayList<String> playlists = new ArrayList<>();
-        ArrayList<String> songRecommendations = new ArrayList<>();
-        ArrayList<String> playlistRecommendations = new ArrayList<>();
+        ArrayList<String> songRecommend = new ArrayList<>();
+        ArrayList<String> playlistRecommend = new ArrayList<>();
 
         for (Song song : likedSongs) {
             songs.add(song.getName());
@@ -85,14 +95,14 @@ public class HomePage implements Page {
         for (Playlist playlist : followedPlaylists) {
             playlists.add(playlist.getName());
         }
-        for (Song song : this.songRecommendations) {
-            songRecommendations.add(song.getName());
+        for (Song song : songRecommendations) {
+            songRecommend.add(song.getName());
         }
-        for (Playlist playlist : this.playlistRecommendations) {
-            playlistRecommendations.add(playlist.getName());
+        for (Playlist playlist : playlistRecommendations) {
+            playlistRecommend.add(playlist.getName());
         }
         return "Liked songs:\n\t" + songs + "\n\nFollowed playlists:\n\t" + playlists + "\n\n"
-                + "Song recommendations:\n\t" + songRecommendations + "\n\n"
-                + "Playlists recommendations:\n\t" + playlistRecommendations;
+                + "Song recommendations:\n\t" + songRecommend + "\n\n"
+                + "Playlists recommendations:\n\t" + playlistRecommend;
     }
 }

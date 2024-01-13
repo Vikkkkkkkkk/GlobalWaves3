@@ -13,7 +13,11 @@ import app.monetization.UserActivity;
 import app.notifications.Notification;
 import app.notifications.Subscriber;
 import app.notifications.ContentCreator;
-import app.page.*;
+import app.page.PageSnapshot;
+import app.page.PageHistory;
+import app.page.HomePage;
+import app.page.LikedContentPage;
+import app.page.Page;
 import app.player.Player;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
@@ -25,8 +29,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.HashMap;
 /**
  * The type User.
  */
@@ -67,6 +77,10 @@ public class User implements Subscriber {
     private List<Merch> boughtMerch;
     private PageHistory pageHistory;
     private LibraryEntry recommended;
+    private static final int LIMIT_5 = 5;
+    private static final int LIMIT_3 = 3;
+    private static final int LIMIT_2 = 2;
+    private static final int TIME_PASSED = 30;
 
     /**
      * Instantiates a new User.
@@ -720,14 +734,29 @@ public class User implements Subscriber {
         return username + " was successfully deleted.";
     }
 
-    public void updateWrapped(AudioFile audioFile) {
+    /**
+     * Updates the wrapped stats by adding a listen.
+     *
+     * @param audioFile the audio file
+     */
+    public void updateWrapped(final AudioFile audioFile) {
         wrappedStats.addListen(audioFile, username);
     }
 
-    public void updateActivity(Song song) {
+    /**
+     * Updates the user activity by adding a listen.
+     *
+     * @param song the song
+     */
+    public void updateActivity(final Song song) {
         userActivity.addListen(song);
     }
 
+    /**
+     * Generates the user's wrapped stats.
+     *
+     * @return the object node
+     */
     public ObjectNode wrapped() {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode result = objectMapper.createObjectNode();
@@ -736,7 +765,7 @@ public class User implements Subscriber {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         ObjectNode topArtists = objectMapper.createObjectNode();
         for (Map.Entry<String, Integer> entry : sortedArtists) {
@@ -747,7 +776,7 @@ public class User implements Subscriber {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         ObjectNode topSongs = objectMapper.createObjectNode();
         for (Map.Entry<String, Integer> entry : sortedSongs) {
@@ -758,7 +787,7 @@ public class User implements Subscriber {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         ObjectNode topEpisodes = objectMapper.createObjectNode();
         for (Map.Entry<String, Integer> entry : sortedEpisodes) {
@@ -769,7 +798,7 @@ public class User implements Subscriber {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         ObjectNode topAlbums = objectMapper.createObjectNode();
         for (Map.Entry<String, Integer> entry : sortedAlbums) {
@@ -780,7 +809,7 @@ public class User implements Subscriber {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         ObjectNode topGenres = objectMapper.createObjectNode();
         for (Map.Entry<String, Integer> entry : sortedGenres) {
@@ -796,6 +825,11 @@ public class User implements Subscriber {
         return result;
     }
 
+    /**
+     * Makes user premium.
+     *
+     * @return the string
+     */
     public String buyPremium() {
         if (premium) {
             return username + " is already a premium user.";
@@ -807,6 +841,11 @@ public class User implements Subscriber {
         return username + " bought the subscription successfully.";
     }
 
+    /**
+     * Cancels user's premium subscription.
+     *
+     * @return the string
+     */
     public String cancelPremium() {
         if (!premium) {
             return username + " is not a premium user.";
@@ -819,22 +858,40 @@ public class User implements Subscriber {
         return username + " cancelled the subscription successfully.";
     }
 
+    /**
+     * Calculates the revenue to be given by the user to the artists.
+     */
     public void giveRevenue() {
         userActivity.giveRevenue();
     }
 
+    /**
+     * Resets the user's activity.
+     */
     public void resetActivity() {
         userActivity.reset();
     }
 
+    /**
+     * Creates a backup of the user's activity.
+     */
     public void backupActivity() {
         userActivity.backupActivity();
     }
 
+    /**
+     * Restores the user's activity saved by a backup.
+     */
     public void restoreActivity() {
         userActivity.restoreActivity();
     }
 
+    /**
+     * Inserts an ad break.
+     *
+     * @param price the price of the ad
+     * @return the string
+     */
     public String adBreak(final Integer price) {
         if (player.getCurrentAudioFile() == null) {
             return username + " is not playing any music.";
@@ -855,11 +912,23 @@ public class User implements Subscriber {
         }
     }
 
+    /**
+     * Updates the user's notifications.
+     *
+     * @param message the message
+     * @param name the username of the notifier
+     */
     @Override
-    public void update(final String message, final String username) {
-        notifications.add(new Notification(message, username));
+    public void update(final String message, final String name) {
+        notifications.add(new Notification(message, name));
     }
 
+    /**
+     * Subscribes to an artist or host.
+     *
+     * @param contentCreator the content creator
+     * @return the string
+     */
     public String subscribe(final ContentCreator contentCreator) {
         String user;
         if (contentCreator instanceof Artist) {
@@ -878,6 +947,11 @@ public class User implements Subscriber {
         }
     }
 
+    /**
+     * Gets notifications.
+     *
+     * @return the notifications
+     */
     public List<ObjectNode> getNotifications() {
         ObjectMapper objectMapper = new ObjectMapper();
         List<ObjectNode> result = new ArrayList<>();
@@ -891,11 +965,21 @@ public class User implements Subscriber {
         return result;
     }
 
+    /**
+     * Clears the user's notifications.
+     */
     public void clearNotifications() {
         notifications.clear();
     }
 
-    public String buyMerch(Artist artist, String merchName) {
+    /**
+     * Buys merch from an artist.
+     *
+     * @param artist the artist
+     * @param merchName the merch name
+     * @return the string
+     */
+    public String buyMerch(final Artist artist, final String merchName) {
         if (artist.getMerchList().stream().noneMatch(merch -> merch.getName().equals(merchName))) {
             return "The merch " + merchName + " doesn't exist.";
         }
@@ -907,6 +991,11 @@ public class User implements Subscriber {
         return username + " has added new merch successfully.";
     }
 
+    /**
+     * Gets user's bought merch.
+     *
+     * @return the merch list
+     */
     public List<String> seeMerch() {
         List<String> result = new ArrayList<>();
         for (Merch merch : boughtMerch) {
@@ -915,6 +1004,11 @@ public class User implements Subscriber {
         return result;
     }
 
+    /**
+     * Goes to the next page in the page history.
+     *
+     * @return the string
+     */
     public String nextPage() {
         pageHistory.addHistorySnapshot(new PageSnapshot(currentPage));
         PageSnapshot snapshot = pageHistory.forward();
@@ -925,6 +1019,11 @@ public class User implements Subscriber {
         return "The user %s has navigated successfully to the next page.".formatted(username);
     }
 
+    /**
+     * Goes to the previous page in the page history.
+     *
+     * @return the string
+     */
     public String previousPage() {
         pageHistory.addFutureSnapshot(new PageSnapshot(currentPage));
         PageSnapshot snapshot = pageHistory.backward();
@@ -936,11 +1035,17 @@ public class User implements Subscriber {
                 .formatted(username);
     }
 
-    public String updateRecommendations(final String type) {
-        if (type.equals("random_song")) {
+    /**
+     * Updates the recommendations.
+     *
+     * @param recommendationType the type of recommendation
+     * @return the tring
+     */
+    public String updateRecommendations(final String recommendationType) {
+        if (recommendationType.equals("random_song")) {
             int timePassed = player.getCurrentAudioFile().getDuration()
                     - player.getRemainedDuration();
-            if (timePassed >= 30) {
+            if (timePassed >= TIME_PASSED) {
                 String genre = ((Song) player.getCurrentAudioFile()).getGenre();
                 List<Song> songs = Admin.getSongsByGenre(genre);
                 Random random = new Random(timePassed);
@@ -954,7 +1059,7 @@ public class User implements Subscriber {
                 return "No new recommendations were found";
             }
         }
-        if (type.equals("random_playlist")) {
+        if (recommendationType.equals("random_playlist")) {
             Set<Song> songsSet = new HashSet<>(likedSongs);
             for (Playlist playlist : followedPlaylists) {
                 songsSet.addAll(playlist.getSongs());
@@ -969,11 +1074,14 @@ public class User implements Subscriber {
             List<Song> songList = new ArrayList<>();
             for (int i = 0; i < genres.size(); i++) {
                 if (i == 0) {
-                    songList.addAll(getTopNSongsByLikes(getSongsByGenre(songsSet, genres.get(i)), 5));
+                    songList.addAll(getTopNSongsByLikes(
+                            getSongsByGenre(songsSet, genres.get(i)), LIMIT_5));
                 } else if (i == 1) {
-                    songList.addAll(getTopNSongsByLikes(getSongsByGenre(songsSet, genres.get(i)), 3));
+                    songList.addAll(getTopNSongsByLikes(
+                            getSongsByGenre(songsSet, genres.get(i)), LIMIT_3));
                 } else {
-                    songList.addAll(getTopNSongsByLikes(getSongsByGenre(songsSet, genres.get(i)), 2));
+                    songList.addAll(getTopNSongsByLikes(
+                            getSongsByGenre(songsSet, genres.get(i)), LIMIT_2));
                 }
             }
             if (songList.isEmpty()) {
@@ -990,13 +1098,14 @@ public class User implements Subscriber {
                     .formatted(username);
 
         }
-        if (type.equals("fans_playlist")) {
+        if (recommendationType.equals("fans_playlist")) {
             Artist artist = Admin.getArtist(((Song) player.getCurrentAudioFile()).getArtist());
-            List<Map.Entry<String, Integer>> sortedFans = artist.getWrappedStats().getFans().entrySet()
+            List<Map.Entry<String, Integer>> sortedFans = artist.getWrappedStats()
+                    .getFans().entrySet()
                     .stream()
                     .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                             .thenComparing(Map.Entry.comparingByKey()))
-                    .limit(5)
+                    .limit(LIMIT_5)
                     .toList();
             List<User> fans = new ArrayList<>();
             for (Map.Entry<String, Integer> entry : sortedFans) {
@@ -1007,13 +1116,13 @@ public class User implements Subscriber {
             }
             List<Song> songList = new ArrayList<>();
             for (User fan : fans) {
-                songList.addAll(getTopNSongsByLikes(fan.getLikedSongs(), 5));
+                songList.addAll(getTopNSongsByLikes(fan.getLikedSongs(), LIMIT_5));
             }
             if (songList.isEmpty()) {
                 return "No new recommendations were found";
             }
-            Playlist recommendation = new Playlist(artist.getUsername() + " Fan Club recommendations",
-                    username, Admin.getTimestamp());
+            Playlist recommendation = new Playlist(artist.getUsername()
+                    + " Fan Club recommendations", username, Admin.getTimestamp());
             for (Song song : songList) {
                 recommendation.addSong(song);
             }
@@ -1025,6 +1134,11 @@ public class User implements Subscriber {
         return "";
     }
 
+    /**
+     * Loads the recommendations.
+     *
+     * @return the string
+     */
     public String loadRecommendations() {
         if (recommended == null) {
             return "No recommendations available.";
@@ -1033,13 +1147,13 @@ public class User implements Subscriber {
             return username + " is offline.";
         }
         player.setAdBreak(false);
-        String type;
+        String recommendationType;
         if (recommended instanceof Song) {
-            type = "song";
+            recommendationType = "song";
         } else {
-            type = "podcast";
+            recommendationType = "podcast";
         }
-        player.setSource(recommended, type);
+        player.setSource(recommended, recommendationType);
         searchBar.clearSelection();
         updateWrapped(player.getCurrentAudioFile());
         if (player.getCurrentAudioFile() instanceof Song) {
@@ -1051,7 +1165,14 @@ public class User implements Subscriber {
         return "Playback loaded successfully.";
     }
 
-    public List<Song> getSongsByGenre(Set<Song> songs, String genre) {
+    /**
+     * Gets all the songs of a genre.
+     *
+     * @param songs the songs
+     * @param genre the genre
+     * @return the songs by genre
+     */
+    public List<Song> getSongsByGenre(final Set<Song> songs, final String genre) {
         List<Song> result = new ArrayList<>();
         for (Song song : songs) {
             if (song.getGenre().equals(genre)) {
@@ -1061,7 +1182,13 @@ public class User implements Subscriber {
         return result;
     }
 
-    public List<String> top3Genres(Set<Song> songsSet) {
+    /**
+     * Gets the top 3 genres of a user.
+     *
+     * @param songsSet the songs set
+     * @return the top 3 genres
+     */
+    public List<String> top3Genres(final Set<Song> songsSet) {
         // create a hashmap with genres and number of songs of that genre
         HashMap<String, Integer> genres = new HashMap<>();
         for (Song song : songsSet) {
@@ -1076,7 +1203,7 @@ public class User implements Subscriber {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(3)
+                .limit(LIMIT_3)
                 .toList();
         List<String> result = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : sortedGenres) {
@@ -1085,12 +1212,16 @@ public class User implements Subscriber {
         return result;
     }
 
-
-    public List<Song> getTopNSongsByLikes(List<Song> songs, int n) {
+    /**
+     * Gets the top n songs by likes.
+     *
+     * @param songs the songs
+     * @param n the number of songs
+     * @return the top n songs by likes
+     */
+    public List<Song> getTopNSongsByLikes(final List<Song> songs, final int n) {
         songs.sort(Comparator.comparingInt(Song::getLikes).reversed());
-        if (n > songs.size()) {
-            n = songs.size();
-        }
-        return songs.subList(0, n);
+        int dimension = Math.min(n, songs.size());
+        return songs.subList(0, dimension);
     }
 }

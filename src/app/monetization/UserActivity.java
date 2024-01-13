@@ -37,7 +37,12 @@ public class UserActivity {
         artists = new LinkedHashMap<>();
     }
 
-    public void addListen(Song song) {
+    /**
+     * Adds a listen to the user's activity.
+     *
+     * @param song the song
+     */
+    public void addListen(final Song song) {
         totalListens++;
         songs.add(song);
         int value = 0;
@@ -48,9 +53,12 @@ public class UserActivity {
         artists.put(song.getArtist(), value);
     }
 
+    /**
+     * Gives the revenue to the artists.
+     */
     public void giveRevenue() {
         if (premium) {
-            for(Map.Entry<String, Integer> entry : artists.entrySet()) {
+            for (Map.Entry<String, Integer> entry : artists.entrySet()) {
                 Artist artist = Admin.getArtist(entry.getKey());
                 Integer listens = entry.getValue();
                 Double revenue = (PREMIUM_CREDIT / totalListens) * listens;
@@ -63,7 +71,7 @@ public class UserActivity {
                 }
             }
         } else {
-            for(Map.Entry<String, Integer> entry : artists.entrySet()) {
+            for (Map.Entry<String, Integer> entry : artists.entrySet()) {
                 Artist artist = Admin.getArtist(entry.getKey());
                 Integer listens = entry.getValue();
                 Double revenue = (adPrice / totalListens) * listens;
@@ -78,12 +86,18 @@ public class UserActivity {
         }
     }
 
+    /**
+     * Resets the user's activity.
+     */
     public void reset() {
         totalListens = 0;
         artists = new LinkedHashMap<>();
         songs = new ArrayList<>();
     }
 
+    /**
+     * Backs up the user's activity.
+     */
     public void backupActivity() {
         backup.setPremium(premium);
         backup.setAdPrice(adPrice);
@@ -92,6 +106,9 @@ public class UserActivity {
         backup.setSongs(songs);
     }
 
+    /**
+     * Restores the user's activity.
+     */
     public void restoreActivity() {
         premium = backup.isPremium();
         adPrice = backup.getAdPrice();

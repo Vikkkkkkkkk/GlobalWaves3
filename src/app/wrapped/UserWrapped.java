@@ -26,20 +26,44 @@ public class UserWrapped {
         wasUpdated = false;
     }
 
-    public void updateSong(String name, int value) {
+    /**
+     * Updates the number of times a song was played
+     *
+     * @param name name of the song
+     * @param value number of times the song was played
+     */
+    public void updateSong(final String name, final int value) {
         songs.put(name, value);
     }
 
-    public void updateAlbum(String name, int value) {
+    /**
+     * Updates the number of times an album was played
+     *
+     * @param name name of the album
+     * @param value number of times the album was played
+     */
+    public void updateAlbum(final String name, final int value) {
         albums.put(name, value);
     }
 
-    public void updateEpisode(String name, int value) {
+    /**
+     * Updates the number of times an episode was played
+     *
+     * @param name name of the episode
+     * @param value number of times the episode was played
+     */
+    public void updateEpisode(final String name, final int value) {
         episodes.put(name, value);
     }
 
 
-    public void addListen(AudioFile audioFile, String username) {
+    /**
+     * Adds a listen to the audio file, to the artist/host, to the album, to the genre
+     *
+     * @param audioFile the audio file
+     * @param username the username of the user
+     */
+    public void addListen(final AudioFile audioFile, final String username) {
         wasUpdated = true;
         int value;
         if (audioFile instanceof Song song) {

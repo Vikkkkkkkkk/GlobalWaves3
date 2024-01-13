@@ -3,12 +3,17 @@ package app.authorizer;
 import app.Admin;
 import app.user.User;
 
-public class Authorizer {
+public final class Authorizer {
     private static Authorizer instance = null;
 
     private Authorizer() {
     }
 
+    /**
+     * Gets the instance of the Authorizer class.
+     *
+     * @return the instance
+     */
     public static Authorizer getInstance() {
         if (instance == null) {
             instance = new Authorizer();
@@ -16,6 +21,12 @@ public class Authorizer {
         return instance;
     }
 
+    /**
+     * Checks if the user exists in the database.
+     *
+     * @param username the username
+     * @return the boolean
+     */
     public boolean existsUser(final String username) {
         for (User user : Admin.getUsers()) {
             if (user.getUsername().equals(username)) {
@@ -25,6 +36,12 @@ public class Authorizer {
         return false;
     }
 
+    /**
+     * Checks if the user is a normal user.
+     *
+     * @param username the username
+     * @return the boolean
+     */
     public boolean isNormalUser(final String username) {
         for (User user : Admin.getUsers()) {
             if (user.getUsername().equals(username)) {

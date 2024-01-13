@@ -179,6 +179,12 @@ public final class Admin {
         return null;
     }
 
+    /**
+     * Gets artist.
+     *
+     * @param username the username
+     * @return the artist
+     */
     public static Artist getArtist(final String username) {
         for (Artist artist : getArtists()) {
             if (artist.getUsername().equals(username)) {
@@ -188,6 +194,9 @@ public final class Admin {
         return null;
     }
 
+    /**
+     * Updates the owners of all episodes.
+     */
     public static void updateOwners() {
         for (Podcast podcast : podcasts) {
             for (Episode episode : podcast.getEpisodes()) {
@@ -196,6 +205,12 @@ public final class Admin {
         }
     }
 
+    /**
+     * Gets host.
+     *
+     * @param username the username
+     * @return the host
+     */
     public static Host getHost(final String username) {
         for (Host host : getHosts()) {
             if (host.getUsername().equals(username)) {
@@ -259,6 +274,12 @@ public final class Admin {
         podcasts.remove(podcast);
     }
 
+    /**
+     * Gets songs by genre.
+     *
+     * @param genre the genre
+     * @return the songs by genre
+     */
     public static List<Song> getSongsByGenre(final String genre) {
         List<Song> songsByGenre = new ArrayList<>();
         for (Song song : songs) {
@@ -716,6 +737,9 @@ public final class Admin {
         return topArtists;
     }
 
+    /**
+     * Prints revenue for all artists at the end of the program
+     */
     public static void endProgram() {
         for (User user : users) {
             if (user.isPremium()) {

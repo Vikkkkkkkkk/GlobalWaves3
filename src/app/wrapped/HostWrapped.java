@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.util.HashMap;
 
 @Getter
-public class HostWrapped extends UserWrapped{
+public class HostWrapped extends UserWrapped {
     private Integer listeners;
     private HashMap<String, Integer> fans = new HashMap<>();
 
@@ -15,11 +15,21 @@ public class HostWrapped extends UserWrapped{
         super();
         listeners = 0;
     }
+
+    /**
+     * Increment the number of listeners.
+     */
     public void incrementListeners() {
         listeners++;
     }
 
-    public void addListen(Episode episode, String username) {
+    /**
+     * Adds a listen to the episode and increments the number of listeners.
+     *
+     * @param episode the episode
+     * @param username the username of the user
+     */
+    public void addListen(final Episode episode, final String username) {
         setWasUpdated(true);
         int value = 0;
 

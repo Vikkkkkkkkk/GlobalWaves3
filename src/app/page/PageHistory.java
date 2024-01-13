@@ -6,38 +6,57 @@ public class PageHistory {
     private Stack<PageSnapshot> history = new Stack<>();
     private Stack<PageSnapshot> future = new Stack<>();
 
-    public void addSnapshot(PageSnapshot snapshot) {
+    /**
+     * Add a snapshot to the history and reset the future.
+     *
+     * @param snapshot the snapshot to be added
+     */
+    public void addSnapshot(final PageSnapshot snapshot) {
         history.push(snapshot);
         future.clear();
     }
 
-    public void addFutureSnapshot(PageSnapshot snapshot) {
+    /**
+     * Add a snapshot to the future.
+     *
+     * @param snapshot the snapshot to be added
+     */
+    public void addFutureSnapshot(final PageSnapshot snapshot) {
         future.push(snapshot);
     }
 
-    public void addHistorySnapshot(PageSnapshot snapshot) {
+    /**
+     * Add a snapshot to the history.
+     *
+     * @param snapshot the snapshot to be added
+     */
+    public void addHistorySnapshot(final PageSnapshot snapshot) {
         history.push(snapshot);
     }
 
-    public void clearFuture() {
-        future.clear();
-    }
-
+    /**
+     * Get the last snapshot from the history.
+     *
+     * @return the last snapshot from the history
+     */
     public PageSnapshot backward() {
         if (history.isEmpty()) {
             return null;
         }
         PageSnapshot snapshot = history.pop();
-//        future.push(snapshot);
         return snapshot;
     }
 
+    /**
+     * Get the last snapshot from the future.
+     *
+     * @return the last snapshot from the future
+     */
     public PageSnapshot forward() {
         if (future.isEmpty()) {
             return null;
         }
         PageSnapshot snapshot = future.pop();
-//        history.push(snapshot);
         return snapshot;
     }
 }

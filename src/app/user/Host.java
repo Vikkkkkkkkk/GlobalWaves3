@@ -24,7 +24,7 @@ public class Host extends User implements ContentCreator {
     private List<Announcement> announcements;
     private HostPage hostPage;
     private HostWrapped wrappedStats;
-    List<Subscriber> subscribers;
+    private List<Subscriber> subscribers;
 
     public Host(final String username, final int age,
                 final String city, final Enums.UserType type) {
@@ -149,6 +149,11 @@ public class Host extends User implements ContentCreator {
         return getUsername() + " was successfully deleted.";
     }
 
+    /**
+     * Generates the host's wrapped stats
+     *
+     * @return the object node
+     */
     @Override
     public ObjectNode wrapped() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -169,18 +174,34 @@ public class Host extends User implements ContentCreator {
         return result;
     }
 
+    /**
+     * Adds a subscriber
+     *
+     * @param subscriber the subscriber
+     */
     @Override
-    public void addSubscriber(Subscriber subscriber) {
+    public void addSubscriber(final Subscriber subscriber) {
         subscribers.add(subscriber);
     }
 
+    /**
+     * Removes a subscriber
+     *
+     * @param subscriber the subscriber
+     */
     @Override
-    public void removeSubscriber(Subscriber subscriber) {
+    public void removeSubscriber(final Subscriber subscriber) {
         subscribers.remove(subscriber);
     }
 
+    /**
+     * Notifies all the subscribers
+     *
+     * @param message the message
+     * @param username the username in the message
+     */
     @Override
-    public void notifySubscribers(String message, String username) {
+    public void notifySubscribers(final String message, final String username) {
         for (Subscriber subscriber : subscribers) {
             subscriber.update(message, username);
         }

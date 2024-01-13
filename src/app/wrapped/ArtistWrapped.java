@@ -14,11 +14,21 @@ public class ArtistWrapped extends UserWrapped {
         super();
         listeners = 0;
     }
+
+    /**
+     * Increments the number of listeners
+     */
     public void incrementListeners() {
         listeners++;
     }
 
-    public void addListen(Song song, String username) {
+    /**
+     * Adds a listen to the song and increments the number of listeners.
+     *
+     * @param song the song
+     * @param username the username of the user
+     */
+    public void addListen(final Song song, final String username) {
         setWasUpdated(true);
         int value = 0;
 

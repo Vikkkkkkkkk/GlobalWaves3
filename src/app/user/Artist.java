@@ -35,7 +35,8 @@ public class Artist extends User implements ContentCreator {
     private Integer likes;
     private ArtistWrapped wrappedStats;
     private ArtistRevenue revenue;
-    List<Subscriber> subscribers;
+    private List<Subscriber> subscribers;
+    private static final int LIMIT_5 = 5;
     public Artist(final String username, final int age,
                   final String city, final Enums.UserType type) {
         super(username, age, city, type);
@@ -226,6 +227,11 @@ public class Artist extends User implements ContentCreator {
         likes += like;
     }
 
+    /**
+     * Generates the artist's wrapped stats.
+     *
+     * @return the object node
+     */
     @Override
     public ObjectNode wrapped() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -235,7 +241,7 @@ public class Artist extends User implements ContentCreator {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         ObjectNode topSongs = objectMapper.createObjectNode();
         for (Map.Entry<String, Integer> entry : sortedSongs) {
@@ -246,7 +252,7 @@ public class Artist extends User implements ContentCreator {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         ObjectNode topAlbums = objectMapper.createObjectNode();
         for (Map.Entry<String, Integer> entry : sortedAlbums) {
@@ -257,7 +263,7 @@ public class Artist extends User implements ContentCreator {
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(5)
+                .limit(LIMIT_5)
                 .toList();
         List<String> topFans = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : sortedFans) {
@@ -272,47 +278,94 @@ public class Artist extends User implements ContentCreator {
         return result;
     }
 
+    /**
+     * Sets the wasPlayed field to true.
+     */
     public void wasPlayed() {
         revenue.setWasPlayed(true);
     }
 
+    /**
+     * Updates the revenue of a song.
+     *
+     * @param name the name of the song
+     * @param price the price of the song
+     */
     public void updateSongRevenue(final String name, final Double price) {
         revenue.addSong(name, price);
     }
 
+    /**
+     * Updates the revenue of a merch.
+     *
+     * @param price the price of the merch
+     */
     public void updateMerchRevenue(final Integer price) {
         revenue.addMerchRevenue(price.doubleValue());
     }
 
+    /**
+     * Adds the revenue of a song to the total revenue.
+     *
+     * @param price
+     */
     public void addSongRevenue(final Double price) {
         revenue.addSongRevenue(price);
     }
 
+    /**
+     * Rounds the revenue to 2 decimals.
+     */
     public void roundRevenue() {
         revenue.roundRevenue();
     }
 
+    /**
+     * Sorts the songs by revenue.
+     */
     public void sortSongs() {
         revenue.sortSongs();
     }
 
+    /**
+     * Adds a subscriber.
+     *
+     * @param subscriber the subscriber
+     */
     @Override
-    public void addSubscriber(Subscriber subscriber) {
+    public void addSubscriber(final Subscriber subscriber) {
         subscribers.add(subscriber);
     }
 
+    /**
+     * Removes a subscriber.
+     *
+     * @param subscriber the subscriber
+     */
     @Override
-    public void removeSubscriber(Subscriber subscriber) {
+    public void removeSubscriber(final Subscriber subscriber) {
         subscribers.remove(subscriber);
     }
 
+    /**
+     * Notifies the subscribers.
+     *
+     * @param message the message
+     * @param username the username of the content creator
+     */
     @Override
-    public void notifySubscribers(String message, String username) {
+    public void notifySubscribers(final String message, final String username) {
         for (Subscriber subscriber : subscribers) {
             subscriber.update(message, username);
         }
     }
 
+    /**
+     * Gets a merch by name.
+     *
+     * @param name the name of the merch
+     * @return the merch
+     */
     public Merch getMerch(final String name) {
         for (Merch merch : merchList) {
             if (merch.getName().equals(name)) {
@@ -320,14 +373,5 @@ public class Artist extends User implements ContentCreator {
             }
         }
         return null;
-    }
-
-    public void removeMerch(final String name) {
-        for (Merch merch : merchList) {
-            if (merch.getName().equals(name)) {
-                merchList.remove(merch);
-                break;
-            }
-        }
     }
 }

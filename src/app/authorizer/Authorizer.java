@@ -24,4 +24,15 @@ public class Authorizer {
         }
         return false;
     }
+
+    public boolean isNormalUser(final String username) {
+        for (User user : Admin.getUsers()) {
+            if (user.getUsername().equals(username)) {
+                if (user.getType().equals("USER")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

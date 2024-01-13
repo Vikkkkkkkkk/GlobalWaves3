@@ -18,6 +18,7 @@ import fileio.input.UserInput;
 import fileio.input.SongInput;
 import fileio.input.PodcastInput;
 import fileio.input.EpisodeInput;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,6 +32,7 @@ public final class Admin {
     private static List<Song> songs = new ArrayList<>();
     private static List<Podcast> podcasts = new ArrayList<>();
     private static List<ArtistRevenue> artistRevenues = new ArrayList<>();
+    @Getter
     private static int timestamp = 0;
     private static final int LIMIT = 5;
 
@@ -255,6 +257,16 @@ public final class Admin {
      */
     public static void removePodcast(final Podcast podcast) {
         podcasts.remove(podcast);
+    }
+
+    public static List<Song> getSongsByGenre(final String genre) {
+        List<Song> songsByGenre = new ArrayList<>();
+        for (Song song : songs) {
+            if (song.getGenre().equals(genre)) {
+                songsByGenre.add(song);
+            }
+        }
+        return songsByGenre;
     }
 
     /**

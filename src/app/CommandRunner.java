@@ -1121,6 +1121,41 @@ public final class CommandRunner {
         return objectNode;
     }
 
+    public static ObjectNode updateRecommendations(final CommandInput commandInput) {
+        String message;
+        if (!Authorizer.getInstance().existsUser(commandInput.getUsername())) {
+            message = "The username "
+                    + commandInput.getUsername() + " doesn't exist.";
+        }
+        if (!Authorizer.getInstance().isNormalUser(commandInput.getUsername())) {
+            message = commandInput.getUsername() + " is not a normal user.";
+        }
+        User user = Admin.getUser(commandInput.getUsername());
+        message = user.updateRecommendations(commandInput.getRecommendationType());
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", user.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    public static ObjectNode loadRecommendations(final CommandInput commandInput) {
+        String message;
+        User user = Admin.getUser(commandInput.getUsername());
+        message = user.loadRecommendations();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", user.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
     public static ObjectNode endProgram() {
         Admin.endProgram();
         ObjectNode objectNode = objectMapper.createObjectNode();

@@ -12,6 +12,8 @@ import java.util.List;
 public class HomePage implements Page {
     private List<Song> likedSongs = new ArrayList<>();
     private List<Playlist> followedPlaylists = new ArrayList<>();
+    private List<Song> songRecommendations = new ArrayList<>();
+    private List<Playlist> playlistRecommendations = new ArrayList<>();
     private static final int LIMIT = 5;
 
     public HomePage() { }
@@ -56,6 +58,14 @@ public class HomePage implements Page {
         }
     }
 
+    public void addSongRecommendation(final Song song) {
+        songRecommendations.add(song);
+    }
+
+    public void addPlaylistRecommendation(final Playlist playlist) {
+        playlistRecommendations.add(playlist);
+    }
+
     /**
      * Prints home page
      *
@@ -66,12 +76,23 @@ public class HomePage implements Page {
 
         ArrayList<String> songs = new ArrayList<>();
         ArrayList<String> playlists = new ArrayList<>();
+        ArrayList<String> songRecommendations = new ArrayList<>();
+        ArrayList<String> playlistRecommendations = new ArrayList<>();
+
         for (Song song : likedSongs) {
             songs.add(song.getName());
         }
         for (Playlist playlist : followedPlaylists) {
             playlists.add(playlist.getName());
         }
-        return "Liked songs:\n\t" + songs + "\n\nFollowed playlists:\n\t" + playlists;
+        for (Song song : this.songRecommendations) {
+            songRecommendations.add(song.getName());
+        }
+        for (Playlist playlist : this.playlistRecommendations) {
+            playlistRecommendations.add(playlist.getName());
+        }
+        return "Liked songs:\n\t" + songs + "\n\nFollowed playlists:\n\t" + playlists + "\n\n"
+                + "Song recommendations:\n\t" + songRecommendations + "\n\n"
+                + "Playlists recommendations:\n\t" + playlistRecommendations;
     }
 }

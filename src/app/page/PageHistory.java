@@ -11,12 +11,24 @@ public class PageHistory {
         future.clear();
     }
 
+    public void addFutureSnapshot(PageSnapshot snapshot) {
+        future.push(snapshot);
+    }
+
+    public void addHistorySnapshot(PageSnapshot snapshot) {
+        history.push(snapshot);
+    }
+
+    public void clearFuture() {
+        future.clear();
+    }
+
     public PageSnapshot backward() {
         if (history.isEmpty()) {
             return null;
         }
         PageSnapshot snapshot = history.pop();
-        future.push(snapshot);
+//        future.push(snapshot);
         return snapshot;
     }
 
@@ -25,7 +37,7 @@ public class PageHistory {
             return null;
         }
         PageSnapshot snapshot = future.pop();
-        history.push(snapshot);
+//        history.push(snapshot);
         return snapshot;
     }
 }

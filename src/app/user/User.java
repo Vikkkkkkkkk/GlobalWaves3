@@ -66,6 +66,7 @@ public class User implements Subscriber {
     private List<Notification> notifications;
     private List<Merch> boughtMerch;
     private PageHistory pageHistory;
+    private LibraryEntry recommended;
 
     /**
      * Instantiates a new User.
@@ -96,6 +97,7 @@ public class User implements Subscriber {
         notifications = new ArrayList<>();
         boughtMerch = new ArrayList<>();
         pageHistory = new PageHistory();
+        recommended = null;
     }
 
     public User(final String username, final int age,
@@ -121,6 +123,7 @@ public class User implements Subscriber {
         notifications = new ArrayList<>();
         boughtMerch = new ArrayList<>();
         pageHistory = new PageHistory();
+        recommended = null;
     }
 
     /**
@@ -198,11 +201,11 @@ public class User implements Subscriber {
                 return "The selected ID is too high.";
             }
             if (searchBar.getLastSearchType().equals("artist")) {
+                pageHistory.addSnapshot(new PageSnapshot(currentPage));
                 currentPage = ((Artist) selected).getArtistPage();
-                pageHistory.addSnapshot(new PageSnapshot(currentPage));
             } else {
-                currentPage = ((Host) selected).getHostPage();
                 pageHistory.addSnapshot(new PageSnapshot(currentPage));
+                currentPage = ((Host) selected).getHostPage();
             }
 
             return "Successfully selected %s's page.".formatted(selected.username);
@@ -655,19 +658,19 @@ public class User implements Subscriber {
      */
     public String changePage(final String nextPage) {
         if (nextPage.equals("Home")) {
-            currentPage = homePage;
             pageHistory.addSnapshot(new PageSnapshot(currentPage));
+            currentPage = homePage;
             return username + " accessed " + nextPage + " successfully.";
         }
         if (nextPage.equals("LikedContent")) {
-            currentPage = likedContentPage;
             pageHistory.addSnapshot(new PageSnapshot(currentPage));
+            currentPage = likedContentPage;
             return username + " accessed " + nextPage + " successfully.";
         }
         if (nextPage.equals("Artist")) {
             if (getCurrentAudioFile() instanceof Song song) {
-                currentPage = Admin.getArtist(song.getArtist()).getArtistPage();
                 pageHistory.addSnapshot(new PageSnapshot(currentPage));
+                currentPage = Admin.getArtist(song.getArtist()).getArtistPage();
                 return username + " accessed " + nextPage + " successfully.";
             } else {
                 return username + " is trying to access a non-existent page.";
@@ -676,8 +679,8 @@ public class User implements Subscriber {
         if (nextPage.equals("Host")) {
             if (getCurrentAudioFile() instanceof Episode episode) {
                 Host host = Admin.getHost(episode.getOwner());
-                currentPage = host.getHostPage();
                 pageHistory.addSnapshot(new PageSnapshot(currentPage));
+                currentPage = host.getHostPage();
                 return username + " accessed " + nextPage + " successfully.";
             } else {
                 return username + " is trying to access a non-existent page.";
@@ -899,7 +902,7 @@ public class User implements Subscriber {
         Merch merch = artist.getMerch(merchName);
         boughtMerch.add(merch);
         artist.updateMerchRevenue(merch.getPrice());
-        artist.removeMerch(merchName);
+//        artist.removeMerch(merchName);
         artist.wasPlayed();
         return username + " has added new merch successfully.";
     }
@@ -913,6 +916,7 @@ public class User implements Subscriber {
     }
 
     public String nextPage() {
+        pageHistory.addHistorySnapshot(new PageSnapshot(currentPage));
         PageSnapshot snapshot = pageHistory.forward();
         if (snapshot == null) {
             return "There are no pages left to go forward.";
@@ -922,11 +926,142 @@ public class User implements Subscriber {
     }
 
     public String previousPage() {
+        pageHistory.addFutureSnapshot(new PageSnapshot(currentPage));
         PageSnapshot snapshot = pageHistory.backward();
         if (snapshot == null) {
             return "There are no pages left to go backward.";
         }
         currentPage = snapshot.getPage();
-        return "The user %s has navigated successfully to the previous page.".formatted(username);
+        return "The user %s has navigated successfully to the previous page."
+                .formatted(username);
+    }
+
+    public String updateRecommendations(final String type) {
+        if (type.equals("random_song")) {
+            int timePassed = player.getCurrentAudioFile().getDuration()
+                    - player.getRemainedDuration();
+            if (timePassed >= 30) {
+                String genre = ((Song) player.getCurrentAudioFile()).getGenre();
+                List<Song> songs = Admin.getSongsByGenre(genre);
+                Random random = new Random(timePassed);
+                int index = random.nextInt(songs.size());
+                Song recommendation = songs.get(index);
+                homePage.addSongRecommendation(recommendation);
+                recommended = recommendation;
+                return "The recommendations for user %s have been updated successfully."
+                        .formatted(username);
+            } else {
+                return "No new recommendations were found.";
+            }
+        }
+        if (type.equals("random_playlist")) {
+            List<String> genres = top3Genres();
+            if (genres.isEmpty()) {
+                return "No new recommendations were found.";
+            }
+            List<Song> songList = new ArrayList<>();
+            for (int i = 0; i < genres.size(); i++) {
+                if (i == 0) {
+                    songList.addAll(getTopNSongsByLikes(Admin.getSongsByGenre(genres.get(i)), 5));
+                } else if (i == 1) {
+                    songList.addAll(getTopNSongsByLikes(Admin.getSongsByGenre(genres.get(i)), 3));
+                } else {
+                    songList.addAll(getTopNSongsByLikes(Admin.getSongsByGenre(genres.get(i)), 2));
+                }
+            }
+            if (songList.isEmpty()) {
+                return "No new recommendations were found.";
+            }
+            Playlist recommendation = new Playlist(username + "'s recommendations",
+                    username, Admin.getTimestamp());
+            for (Song song : songList) {
+                recommendation.addSong(song);
+            }
+            homePage.addPlaylistRecommendation(recommendation);
+            recommended = recommendation;
+            return "The recommendations for user %s have been updated successfully."
+                    .formatted(username);
+        }
+        if (type.equals("fans_playlist")) {
+            Artist artist = Admin.getArtist(((Song) player.getCurrentAudioFile()).getArtist());
+            List<Map.Entry<String, Integer>> sortedFans = artist.getWrappedStats().getFans().entrySet()
+                    .stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                            .thenComparing(Map.Entry.comparingByKey()))
+                    .limit(5)
+                    .toList();
+            List<User> fans = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : sortedFans) {
+                fans.add(Admin.getUser(entry.getKey()));
+            }
+            if (fans.isEmpty()) {
+                return "No new recommendations were found.";
+            }
+            List<Song> songList = new ArrayList<>();
+            for (User fan : fans) {
+                songList.addAll(getTopNSongsByLikes(fan.getLikedSongs(), 5));
+            }
+            if (songList.isEmpty()) {
+                return "No new recommendations were found.";
+            }
+            Playlist recommendation = new Playlist(artist.getUsername() + " Fan Club recommendations",
+                    username, Admin.getTimestamp());
+            for (Song song : songList) {
+                recommendation.addSong(song);
+            }
+            homePage.addPlaylistRecommendation(recommendation);
+            recommended = recommendation;
+            return "The recommendations for user %s have been updated successfully."
+                    .formatted(username);
+        }
+        return "";
+    }
+
+    public String loadRecommendations() {
+        if (recommended == null) {
+            return "No recommendations available.";
+        }
+        if (status == Enums.Status.OFFLINE) {
+            return username + " is offline.";
+        }
+        player.setAdBreak(false);
+        String type;
+        if (recommended instanceof Song) {
+            type = "song";
+        } else {
+            type = "podcast";
+        }
+        player.setSource(recommended, type);
+        searchBar.clearSelection();
+        updateWrapped(player.getCurrentAudioFile());
+        if (player.getCurrentAudioFile() instanceof Song) {
+            updateActivity((Song) player.getCurrentAudioFile());
+        }
+
+        player.pause();
+
+        return "Playback loaded successfully.";
+    }
+
+    public List<String> top3Genres() {
+        List<String> result = new ArrayList<>();
+        List<Map.Entry<String, Integer>> sortedGenres = wrappedStats.getGenres().entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(3)
+                .toList();
+        for (Map.Entry<String, Integer> entry : sortedGenres) {
+            result.add(entry.getKey());
+        }
+        return result;
+    }
+
+    public List<Song> getTopNSongsByLikes(List<Song> songs, int n) {
+        songs.sort(Comparator.comparingInt(Song::getLikes).reversed());
+        if (n > songs.size()) {
+            n = songs.size();
+        }
+        return songs.subList(0, n);
     }
 }

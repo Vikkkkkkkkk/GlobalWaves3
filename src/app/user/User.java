@@ -951,26 +951,33 @@ public class User implements Subscriber {
                 return "The recommendations for user %s have been updated successfully."
                         .formatted(username);
             } else {
-                return "No new recommendations were found.";
+                return "No new recommendations were found";
             }
         }
         if (type.equals("random_playlist")) {
-            List<String> genres = top3Genres();
+            Set<Song> songsSet = new HashSet<>(likedSongs);
+            for (Playlist playlist : followedPlaylists) {
+                songsSet.addAll(playlist.getSongs());
+            }
+            for (Playlist playlist : playlists) {
+                songsSet.addAll(playlist.getSongs());
+            }
+            List<String> genres = top3Genres(songsSet);
             if (genres.isEmpty()) {
-                return "No new recommendations were found.";
+                return "No new recommendations were found";
             }
             List<Song> songList = new ArrayList<>();
             for (int i = 0; i < genres.size(); i++) {
                 if (i == 0) {
-                    songList.addAll(getTopNSongsByLikes(Admin.getSongsByGenre(genres.get(i)), 5));
+                    songList.addAll(getTopNSongsByLikes(getSongsByGenre(songsSet, genres.get(i)), 5));
                 } else if (i == 1) {
-                    songList.addAll(getTopNSongsByLikes(Admin.getSongsByGenre(genres.get(i)), 3));
+                    songList.addAll(getTopNSongsByLikes(getSongsByGenre(songsSet, genres.get(i)), 3));
                 } else {
-                    songList.addAll(getTopNSongsByLikes(Admin.getSongsByGenre(genres.get(i)), 2));
+                    songList.addAll(getTopNSongsByLikes(getSongsByGenre(songsSet, genres.get(i)), 2));
                 }
             }
             if (songList.isEmpty()) {
-                return "No new recommendations were found.";
+                return "No new recommendations were found";
             }
             Playlist recommendation = new Playlist(username + "'s recommendations",
                     username, Admin.getTimestamp());
@@ -981,6 +988,7 @@ public class User implements Subscriber {
             recommended = recommendation;
             return "The recommendations for user %s have been updated successfully."
                     .formatted(username);
+
         }
         if (type.equals("fans_playlist")) {
             Artist artist = Admin.getArtist(((Song) player.getCurrentAudioFile()).getArtist());
@@ -995,14 +1003,14 @@ public class User implements Subscriber {
                 fans.add(Admin.getUser(entry.getKey()));
             }
             if (fans.isEmpty()) {
-                return "No new recommendations were found.";
+                return "No new recommendations were found";
             }
             List<Song> songList = new ArrayList<>();
             for (User fan : fans) {
                 songList.addAll(getTopNSongsByLikes(fan.getLikedSongs(), 5));
             }
             if (songList.isEmpty()) {
-                return "No new recommendations were found.";
+                return "No new recommendations were found";
             }
             Playlist recommendation = new Playlist(artist.getUsername() + " Fan Club recommendations",
                     username, Admin.getTimestamp());
@@ -1043,19 +1051,40 @@ public class User implements Subscriber {
         return "Playback loaded successfully.";
     }
 
-    public List<String> top3Genres() {
-        List<String> result = new ArrayList<>();
-        List<Map.Entry<String, Integer>> sortedGenres = wrappedStats.getGenres().entrySet()
+    public List<Song> getSongsByGenre(Set<Song> songs, String genre) {
+        List<Song> result = new ArrayList<>();
+        for (Song song : songs) {
+            if (song.getGenre().equals(genre)) {
+                result.add(song);
+            }
+        }
+        return result;
+    }
+
+    public List<String> top3Genres(Set<Song> songsSet) {
+        // create a hashmap with genres and number of songs of that genre
+        HashMap<String, Integer> genres = new HashMap<>();
+        for (Song song : songsSet) {
+            if (genres.containsKey(song.getGenre())) {
+                genres.put(song.getGenre(), genres.get(song.getGenre()) + 1);
+            } else {
+                genres.put(song.getGenre(), 1);
+            }
+        }
+        // sort the hashmap by value
+        List<Map.Entry<String, Integer>> sortedGenres = genres.entrySet()
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
                 .limit(3)
                 .toList();
+        List<String> result = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : sortedGenres) {
             result.add(entry.getKey());
         }
         return result;
     }
+
 
     public List<Song> getTopNSongsByLikes(List<Song> songs, int n) {
         songs.sort(Comparator.comparingInt(Song::getLikes).reversed());

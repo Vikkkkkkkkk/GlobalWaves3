@@ -84,13 +84,10 @@ public final class Main {
         Admin.setPodcasts(library.getPodcasts());
         Admin.updateOwners();
 
-        Authorizer authorizer = Authorizer.getInstance();
-
         for (CommandInput command : commands) {
             Admin.updateTimestamp(command.getTimestamp());
 
             String commandName = command.getCommand();
-            int i;
 
             switch (commandName) {
                 case "search" -> outputs.add(CommandRunner.search(command));
@@ -150,8 +147,7 @@ public final class Main {
                         outputs.add(CommandRunner.updateRecommendations(command));
                 case "loadRecommendations" ->
                         outputs.add(CommandRunner.loadRecommendations(command));
-//                default -> System.out.println("Invalid command " + commandName);
-                default -> i = 0;
+                default -> System.out.println("Invalid command " + commandName);
             }
         }
 

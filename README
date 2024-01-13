@@ -1,0 +1,36 @@
+Tema 3 POO - GlobalWaves etapa 3 - VADUVA VICTOR NICOLAE 323CD
+
+I have used my own implementation of the second stage.
+
+In this homework I've extended the functionalities of the audio player with:
+	- all-time stats for users, artists and hosts (GlobalWaves Wrapped)
+	- a monetization system for artists based on premium subscriptions, ads and merchandise
+	- the ability for a user to buy merchandise from an artist
+	- the ability for a user to subscribe to an artist or a host and receive notifications on certain events
+	- page navigation history, enabling the users to go backward and forward through pages
+	- a recommendation system for users that recommends them a random song or creates playlists for them
+
+New packages and classes added:
+	- wrapped package that contains 3 classes: UserWrapped, ArtistWrapped and HostWrapped. These 3 classes contain stats necessary for wrapped.
+	- monetization package that contains:
+		USerActivity: it stores data about the songs played by the user, data that is used to determine the revenue given to artists
+		ArtistRevenue: stores the revenue earned by an artist
+	- notifications package that contains an interface for the subscriber (user), an interface for the content creator (artist/host) and a class Notification that defines the structure of a notification
+	- authorizer package that contains Authorizer class, used to authorize certain actions
+	- in page package are 2 new classes added:
+		PageSnapshot that creates a snapshot of a page
+		PageHistory that stores the history of the pages for next and prev page
+
+Regarding the flow of the app:
+	For wrapped, when the command is given, CommandRunner calls a method in User, that is also overridden by Artist and Host, so the proper method is called. Stats for wrapped are collected at every play of every user on the platform.
+	For monetization I've chosen a similar approach to wrapped, collecting stats at every play. The stats for every user are stored in UserActivity, and are reseted when the method giveRevenue is called (this method "gives" the artists the revenue owed).
+At the end of the program, by calling endProgram, the revenue is displayed.
+	For notifications, users can subscribe to artists or hosts and they are added onto a list of subscribers. When a content creator does an action, they update the subscribers, and they receive a notification.
+	For recommendations, a method in User searches for the random song or creates the playlist requested, giving the user the option to load that audio file onto the player.
+	For page navigation, a history of previous pages is kept for every user using PageHistory. Whenever users want to change the page, a snapshot of the current page is stored in the history. If an user wants to go backward or forward, the snapshot is taken out and used.
+
+Design patterns:
+	- Singleton design pattern used for CommandRunner and Authorizer. I have chosen this design pattern because there should only be one instance of each in the app.
+	- Strategy design pattern used for printing pages: it is decided at runtime which printPage method implementation is used. Page is an interface that contains a method called printPage. Every other class (HomePage, LikedContentPage, ArtistPage, HostPage) implements Page and overrides the method with its specific print format. I have used this design pattern so that the proper method is called.
+	- Observer design pattern used for notifications: User implements interface Subscriber and Artist and Host implement ContentCreator. Content creators notify all subscribers and subscribers receive notifications, so content creators are the subjects, and users are the observers. I have used this design pattern so that a content creator can notify all users at once.
+	- Memento design pattern used for page history: PageHistory is the caretaker that creates and stores snapshots of the pages, PageMemento is the memento (the snapshot of a page) and the user with its currentPage is the originator. When a user changes the page, the caretaker creates a snapshot of the previous page. When calling backward or forward, the caretaker pops a snapshot from the stack and restores the state. I have used this design pattern to store the history efficiently.

@@ -986,7 +986,6 @@ public class User implements Subscriber {
         Merch merch = artist.getMerch(merchName);
         boughtMerch.add(merch);
         artist.updateMerchRevenue(merch.getPrice());
-//        artist.removeMerch(merchName);
         artist.wasPlayed();
         return username + " has added new merch successfully.";
     }
